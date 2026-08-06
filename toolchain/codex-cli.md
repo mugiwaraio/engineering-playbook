@@ -26,6 +26,12 @@ brew install --cask codex
 
 支持平台：macOS（arm64 / x86_64）、Linux（x86_64 / arm64）、Windows。
 
+**Linux 沙箱依赖**（Fedora / RHEL 系）：Codex 在 Linux 上执行命令依赖 bubblewrap 沙箱，需先安装：
+
+```bash
+dnf install -y bubblewrap
+```
+
 ## 验证
 
 ```bash
