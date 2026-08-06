@@ -36,6 +36,10 @@
 - 压缩后的 JS 或 CSS 文件
 - 日志文件
 - 自动生成文件
+- Lockfile（`package-lock.json`、`pnpm-lock.yaml`、`yarn.lock`）：仅在排查依赖版本问题时按包名搜索相关片段，禁止整个文件读入上下文
+- `__snapshots__/` 测试快照目录
+- 大体积测试 fixture 数据文件
+- `public/`、`assets/`、`static/` 下的静态资源和二进制文件
 
 ## 搜索规则
 
