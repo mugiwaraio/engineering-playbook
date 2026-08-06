@@ -1,0 +1,56 @@
+# 依赖目录
+node_modules/
+
+# 编译和构建产物
+dist/
+build/
+out/
+.next/
+.nuxt/
+.output/
+
+# 测试和覆盖率
+coverage/
+.nyc_output/
+
+# 缓存目录
+.cache/
+.turbo/
+.parcel-cache/
+.npm/
+.pnpm-store/
+.yarn/
+
+# 临时目录
+tmp/
+temp/
+.tmp/
+
+# 日志
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# TypeScript 和工具缓存
+*.tsbuildinfo
+.eslintcache
+
+# Source map 和压缩产物
+*.map
+*.min.js
+*.min.css
+
+# 本地环境配置
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# 编辑器和系统文件
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
