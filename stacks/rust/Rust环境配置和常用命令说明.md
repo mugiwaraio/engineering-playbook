@@ -9,9 +9,11 @@
 
 ```bash
 mkdir -p /data/rust/{cargo,rustup}
-chown -R $USER:$(id -gn) /data/rust
+chown -R ec2-user:ec2-user /data/rust
 chmod -R 755 /data/rust
 ```
+
+> 注意：属主必须写实际使用 Rust 的用户名（本文以 ec2-user 为例），不要写 `$USER`——在 root shell 里 `$USER` 展开为 root，目录会归 root 所有，后续 1.3 安装时报 `could not write settings file: '/data/rust/rustup/settings.toml': Permission denied`。已踩坑的机器执行 `chown -R ec2-user:ec2-user /data/rust` 修复后重新安装即可。
 
 ### 1.2 配置环境变量（ec2-user 执行）
 
@@ -25,15 +27,24 @@ EOF
 source ~/.bashrc
 ```
 
-### 1.3 非交互安装 Rust（不让安装程序修改 PATH）
+### 1.3 安装编译工具链（管理员执行）
 
 ```bash
 dnf install -y gcc gcc-c++ make
+```
+
+> `dnf install` 需要 root 权限，普通用户直接执行会报 `Error: This command has to be run with superuser privileges`；非 root 用户请加 `sudo`。
+
+### 1.4 非交互安装 Rust（ec2-user 执行，不让安装程序修改 PATH）
+
+前置条件：1.1 的目录属主已归 ec2-user，且 1.2 的环境变量已生效（`echo $RUSTUP_HOME` 应输出 `/data/rust/rustup`）。
+
+```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
   | sh -s -- -y --no-modify-path
 ```
 
-### 1.4 验证安装
+### 1.5 验证安装
 
 ```bash
 which rustc
