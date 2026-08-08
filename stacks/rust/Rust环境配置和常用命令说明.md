@@ -324,7 +324,7 @@ git init
 
 cat > rust-toolchain.toml <<'EOF'
 [toolchain]
-channel = "1.93.0"       # 填当前使用的稳定版（rustc --version 查看），团队与 CI 保持一致
+channel = "1.97.1"       # 填当前使用的稳定版（rustc --version 查看），团队与 CI 保持一致
 components = ["rustfmt", "clippy"]
 EOF
 ```
