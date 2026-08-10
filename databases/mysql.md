@@ -10,21 +10,21 @@
 2. 注释强制：所有表必须有表 COMMENT，所有字段必须有字段 COMMENT，写清业务含义；状态/枚举类字段在注释中列出每个取值的含义。
 3. 主键：必须有主键，优先无业务含义的自增 BIGINT UNSIGNED；业务唯一键用唯一索引承载，不做主键；禁止随机 UUID 字符串做主键（随机写导致页分裂），分布式 ID 须趋势递增。
 4. 通用字段：`created_at` DATETIME 默认 CURRENT_TIMESTAMP，`updated_at` DATETIME 默认 CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP；字段优先 NOT NULL + 默认值。唯一索引列避免 NULL——MySQL 中多个 NULL 不视为唯一冲突。
-5. 整型：按取值范围选 TINYINT / SMALLINT / INT / BIGINT，非负加 UNSIGNED；布尔和状态用 TINYINT；JOIN / 引用两侧字段的类型与符号必须完全一致。
-6. 字符串：VARCHAR 长度按业务实际上限定，禁止无脑 VARCHAR(255) / VARCHAR(1024)——过长长度影响内存排序与临时表分配；超长文本用 TEXT 并考虑拆表；禁止 VARCHAR 存日期、存金额。
+5. 整型：按取值范围选 TINYINT / SMALLINT / INT / BIGINT，非负加 UNSIGNED；不写显示宽度（用 INT，不用 INT(4)，8.0.17 起显示宽度已废弃）；布尔和状态用 TINYINT；JOIN / 引用两侧字段的类型与符号必须完全一致。
+6. 字符串：VARCHAR(N) 的 N 是字符数不是字节数，按业务实际上限取尽可能小的 N，禁止无脑 VARCHAR(255) / VARCHAR(1024)——磁盘按实际内容占用，但排序、临时表等内存操作按 N 分配；CHAR 仅用于真正定长的值；超长文本用 TEXT 并考虑拆表；禁止 VARCHAR 存日期、存金额。
 7. 时间：统一 DATETIME（需要毫秒用 DATETIME(3)）；避免 TIMESTAMP（2038 上限、随会话时区隐式转换）；全库统一时区约定。
 8. 金额：DECIMAL 且明确精度标度（如 DECIMAL(18, 2)），或统一用最小货币单位整型（分，BIGINT）；禁止 FLOAT / DOUBLE。
 9. 枚举：取值稳定才用 ENUM（增删取值需要 DDL）；会持续扩展的状态用 TINYINT + 应用层常量。选定一种后全库统一，禁止混用。
 10. JSON：只存不作为查询条件的弱结构数据；需要查询或索引的键提升为独立列，或用生成列 + 索引。
 11. 禁止物理外键，引用完整性由应用层保证。
-12. 命名：表/字段小写下划线；普通索引 `idx_`、唯一索引 `uk_` 前缀；禁用 MySQL 保留字。
+12. 命名：表名与业务关联；表/字段小写下划线；普通索引 `idx_`、唯一索引 `uk_` 前缀；禁用 MySQL 保留字；测试用表加 `dev_` 前缀与线上表区分。
 
 ## SQL 编写
 
 13. 禁止 `SELECT *`：列增减会导致行为漂移，且浪费回表和带宽。
 14. 禁止无 WHERE 条件的 UPDATE / DELETE。
 15. 一律参数化查询，禁止字符串拼接 SQL。
-16. 防索引失效：WHERE 里不对字段套函数/运算；不让字符串列与数字比较产生隐式转换。
+16. 防索引失效：WHERE 里不对字段套函数/运算；不让字符串列与数字比较产生隐式转换；禁止前导通配符的全模糊匹配 `LIKE '%xxx%'`（无法走索引），确需全文检索用 FULLTEXT 或外部搜索引擎。
 17. 深分页禁止 `LIMIT 1000000, 20`，用游标（`WHERE id > ?`）或延迟关联。
 18. 核心 SQL 上线前必须 EXPLAIN，避免全表扫描；禁止循环内逐条查询（N+1）。
 
@@ -53,9 +53,16 @@
 33. 重要结构变更分阶段：Expand → Migrate → Verify → Contract。不在一个 Migration 里做完所有高风险操作。
 34. 大规模数据回填与 DDL 拆成独立 Migration。回填须分批、限速、小事务、可恢复、有进度记录；禁止无边界的大表全量 `UPDATE`。
 35. 大表 DDL 先做风险评估：行数、读写 QPS、Metadata Lock、主从延迟、临时/最终磁盘空间、Online DDL 能力、执行窗口，必要时用 Online Schema Change 工具。
-36. 索引必须有明确查询依据（WHERE / JOIN / ORDER BY / 选择性），检查等价索引与左前缀重复；删索引先确认无依赖。禁止"SQL 慢就无脑加索引"。
+36. 索引必须有明确查询依据（WHERE / JOIN / ORDER BY / 选择性）；联合索引 `INDEX(p1, p2, p3)` 已等效覆盖 `(p1)`、`(p1, p2)` 左前缀，禁止再建这些重复索引；删索引先确认无依赖。禁止"SQL 慢就无脑加索引"。
 37. 禁止手工直连生产改 Schema。紧急 DDL 须 DBA 参与、留痕（SQL、执行人、时间、结果、影响范围），事后补正式 Migration，保证仓库 Migration 历史 = 生产实际 Schema 演进。
 38. 区分两种幂等：Schema Migration 默认不幂等；业务操作（支付回调、消息消费、对账、定时任务、基础数据初始化等）按语义照常设计幂等，如 `ON DUPLICATE KEY UPDATE`。
+
+## 附：存储与长度参考（MySQL 8+）
+
+- 单行所有字段总字节长度上限 65535 字节（TEXT / BLOB 等溢出列只计指针）；VARCHAR 的 N 折算成字节后计入该上限。
+- 单字符最大字节数：latin1 = 1，gbk = 2，utf8mb3 = 3，utf8mb4 = 4。MySQL 8.0 中 `utf8` 是 utf8mb3 的别名、已弃用，建库建表一律显式 utf8mb4。
+- VARCHAR 为变长：内容 ≤ 255 字节时长度前缀占 1 字节，超过占 2 字节。VARCHAR(100) 与 VARCHAR(20) 存 `'abc'` 磁盘占用相同，差别在内存操作按 N 分配（见第 6 条）。
+- CHAR 为定长：上限 255 字符，不足部分用空格补齐；超长写入在严格模式（8.0 默认）下直接报错，不是静默截断。
 
 ## 示例
 
