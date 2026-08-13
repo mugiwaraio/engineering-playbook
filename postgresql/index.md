@@ -7,9 +7,9 @@
 ## 推荐阅读顺序
 
 1. 先读 [PostgreSQL 正式项目数据库与权限规范](#1-postgresql-正式项目数据库与权限规范) —— 建立 database / schema / 用户权限的整体设计观。
-2. 建库前读 [template0 / template1 使用说明](#2-template0--template1-使用说明) 和 [字符集、大小写、时区、备份恢复速查](#3-字符集大小写时区备份恢复命令速查)。
-3. 日常操作查 [psql 常用命令速查](#4-psql-常用命令速查)。
-4. 涉及半结构化字段时读 [JSONB 使用规范](#5-jsonb-使用规范)。
+2. 建库前读 [template0 / template1 使用说明](#2-postgresql-template0--template1-使用说明) 和 [字符集、大小写、时区、备份恢复速查](#5-postgresql-字符集大小写时区备份恢复命令速查)。
+3. 日常操作查 [psql 常用命令速查](#4-postgresql-psql-常用命令速查)。
+4. 涉及半结构化字段时读 [JSONB 使用规范](#3-postgresql-jsonb-使用规范)。
 
 ---
 
