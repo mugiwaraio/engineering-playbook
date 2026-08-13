@@ -1,6 +1,6 @@
 # PostgreSQL 文档索引
 
-本目录收录 PostgreSQL 在正式项目中的**规范**与**命令速查**共 5 篇文档。规范类讲“应该怎么做、为什么”,速查类讲“具体命令怎么敲”。
+本目录收录 PostgreSQL 在正式项目中的**规范**、**命令速查**与**初始化模板**共 6 篇文档。规范类讲“应该怎么做、为什么”,速查类讲“具体命令怎么敲”,模板类是可直接套用的成品脚本。
 
 ---
 
@@ -10,6 +10,7 @@
 2. 建库前读 [template0 / template1 使用说明](#2-postgresql-template0--template1-使用说明) 和 [字符集、大小写、时区、备份恢复速查](#5-postgresql-字符集大小写时区备份恢复命令速查)。
 3. 日常操作查 [psql 常用命令速查](#4-postgresql-psql-常用命令速查)。
 4. 涉及半结构化字段时读 [JSONB 使用规范](#3-postgresql-jsonb-使用规范)。
+5. 真正动手建开发 / 测试库时,套用 [开发测试库初始化模板](#6-postgresql-开发测试库初始化模板)。
 
 ---
 
@@ -20,6 +21,7 @@
 | 规划一个新项目的库、schema、用户 | [数据库与权限规范](./postgresql-project-db-and-privileges.md) 第 1–4 章 |
 | 生产 / 测试 / 开发环境权限怎么分 | [数据库与权限规范](./postgresql-project-db-and-privileges.md) 第 6–10 章 |
 | 拿一份可直接跑的初始化脚本 | [数据库与权限规范](./postgresql-project-db-and-privileges.md) 第 11 章 |
+| 建开发 / 测试库,要一份改个名就能跑的完整脚本 | [开发测试库初始化模板](./开发测试数据库初始化模板.md) |
 | 授权/权限相关的报错排查 | [数据库与权限规范](./postgresql-project-db-and-privileges.md) 第 15 章 |
 | 建库该用 template0 还是 template1 | [template 使用说明](./postgresql-template-databases.md) |
 | 建库指定字符集、排序规则、时区 | [字符集…备份恢复速查](./postgresql-charset-timezone-backup-cheatsheet.md) 第 1–4 章 |
@@ -82,6 +84,17 @@
 - 标识符大小写规范、大小写敏感/不敏感查询、`lower()` 唯一索引
 - `pg_dump` / `pg_restore` / `pg_dumpall` 备份恢复全流程与恢复后检查
 
+### 🧩 模板类
+
+#### 6. [PostgreSQL 开发测试库初始化模板](./开发测试数据库初始化模板.md)
+
+开发 / 测试环境从零建库的可执行脚本,12 个步骤用管理员账号按顺序执行即可。
+
+- 与规范第 11.3 节是**两种做法**:那边用 GRANT + ALTER DEFAULT PRIVILEGES 授权,这边用 `SET ROLE` 让开发用户自建 `app` schema,从而直接成为 owner
+- 数据库仍归管理员持有,开发用户只拿 database 级 `ALL`(即 CREATE / CONNECT / TEMPORARY 三项)
+- 收紧 `PUBLIC` 的数据库权限与 `public` schema 建对象权限
+- 开发用户默认 `search_path` 指向 `app`,时区在库级与角色级均设为 UTC
+
 ---
 
-> 约定:文档中示例统一使用 `Database: g_api`、`Schema: app`、`User: g_api_user`,可按实际项目替换。
+> 约定:前 5 篇文档示例统一使用 `Database: g_api`、`Schema: app`、`User: g_api_user`,可按实际项目替换;第 6 篇是已填好实际项目名(`llm_gatecheck` / `llm_gatecheck_user`)的成品脚本,套用时全文替换库名与角色名。
