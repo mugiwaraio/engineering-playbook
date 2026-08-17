@@ -10,6 +10,7 @@
 | Codex CLI | OpenAI | [codex-cli.md](codex-cli.md) |
 | Gemini CLI | Google | [gemini-cli.md](gemini-cli.md) |
 | Copilot CLI | GitHub | [copilot-cli.md](copilot-cli.md) |
+| 模型档位对照表 | Anthropic / OpenAI | [models.md](models.md) — 配套编码规范第 13.3 节，任务→档位→型号、价格、effort、配置入口 |
 
 ## 通用建议
 
@@ -22,4 +23,4 @@
 ## 扩展方式
 
 - 新增工具：本目录下新建 `<工具名>.md`，包含安装、验证、认证、更新、卸载五节，文末注明来源与核实日期，并在上方索引表加一行。
-- 模型档位清单（安全审计要求的最强模型对照表）如需集中维护，可在本目录新增 `models.md`。
+- 型号换代：只改 `models.md`（档位→型号、价格、effort、安全审计最强档），不改编码规范正文；同时更新文末核实日期。
